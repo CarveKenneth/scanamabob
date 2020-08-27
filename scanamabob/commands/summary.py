@@ -5,9 +5,12 @@ from scanamabob.services.sts import get_accountid
 
 DESCRIPTION = 'Scan AWS environment for common security misconfigurations'
 USAGE = f'''scanamabob summary [-h] [-r regions] [-p profiles]'''
-parser = ArgumentParser(description=DESCRIPTION,
-                        usage=USAGE)
-add_context_to_argparse(parser)
+
+
+def add_parser(main_parser):
+    parser = main_parser.add_parser(name='summary', description=DESCRIPTION, usage=USAGE)
+    add_context_to_argparse(parser)
+    parser.set_defaults(func=command)
 
 
 def iam_summary(context):
@@ -18,9 +21,8 @@ def ec2_summary(context):
     print('## EC2')
 
 
-def command(args):
+def command(arguments):
     ''' Main handler of the summary subcommand '''
-    arguments = parser.parse_args(args)
     context = Context(arguments.profiles, arguments.regions)
 
     if not context.regions_valid():
@@ -36,4 +38,5 @@ def command(args):
 
 
 COMMAND = {'description': DESCRIPTION,
+           'add_parser': add_parser,
            'function': command}

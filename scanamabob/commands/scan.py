@@ -16,18 +16,20 @@ from scanamabob.context import Context, add_context_to_argparse
 DESCRIPTION = 'Scan AWS environment for common security misconfigurations'
 USAGE = f'''scanamabob scan [-h] [-l] [-P] [-r regions] [-p profiles] \
 [scantypes] [...]'''
-parser = ArgumentParser(description=DESCRIPTION,
-                        usage=USAGE)
-parser.add_argument('-o', '--output', choices=['stdout', 'json'],
-                    default='stdout',
-                    help="Output format for scan (default: stdout)")
-parser.add_argument('-l', '--list-scans', action='store_true',
-                    help="List the scans available to run")
-parser.add_argument('-P', '--permissions', action='store_true',
-                    help="Return IAM Policy JSON needed to complete scan")
-add_context_to_argparse(parser)
-parser.add_argument('scantypes', nargs='*',
-                    help="Specific scan suites or individual scans to run")
+
+def add_parser(main_parser):
+    parser = main_parser.add_parser(name='scan', description=DESCRIPTION, )
+    parser.add_argument('-o', '--output', choices=['stdout', 'json'],
+                        default='stdout',
+                        help="Output format for scan (default: stdout)")
+    parser.add_argument('-l', '--list-scans', action='store_true',
+                        help="List the scans available to run")
+    parser.add_argument('-P', '--permissions', action='store_true',
+                        help="Return IAM Policy JSON needed to complete scan")
+    add_context_to_argparse(parser)
+    parser.add_argument('scantypes', nargs='*',
+                        help="Specific scan suites or individual scans to run")
+    parser.set_defaults(func=command)
 
 
 scan_suites = {
@@ -152,9 +154,8 @@ def list_scans():
         print('')
 
 
-def command(args):
+def command(arguments):
     ''' Main handler of the scan subcommand '''
-    arguments = parser.parse_args(args)
 
     if not scan_targets_valid(arguments.scantypes):
         print('Invalid scan types provided, scan cancelled')
@@ -177,4 +178,5 @@ def command(args):
 
 
 COMMAND = {'description': DESCRIPTION,
+           'add_parser': add_parser,
            'function': command}
